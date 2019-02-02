@@ -1,0 +1,23 @@
+<Configuration>
+
+  <Add Channel="Monthly" OfficeClientEdition="OSBIT">
+	<Product ID="O365ProPlusRetail">
+      <Language ID="MatchOS" />
+    </Product>
+  </Add>
+	
+	<Updates Enabled="TRUE" Channel="Monthly" />
+	
+	<Display Level="None" AcceptEULA="TRUE" />
+	
+	<Property Name="AUTOACTIVATE" Value="1" />
+
+	<Property Name="FORCEAPPSHUTDOWN" Value="TRUE"/>
+
+	<RemoveMSI All="MSIREMOVAL" />
+
+	<Logging Level="Standard" Path="C:\Temp\OfficeInstallLogs" />
+	
+</Configuration>	
+	
+ 

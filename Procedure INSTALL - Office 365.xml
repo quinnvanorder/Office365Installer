@@ -1,0 +1,283 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Procedure name="INSTALL - Office 365" treePres="3" id="458359282" folderId="324653428105941" treeFullPath="Tools - Q">
+    <Body description="1)O365ProPlus&#xA;2)O365Business&#xA;3)O365SmallBusPrem&#xA;4)O365HomePrem&#xA;5)Access&#xA;6)Access2019&#xA;7)Access2019Volume&#xA;8)Excel&#xA;9)Excel2019&#xA;10)Excel2019Volume&#xA;11)HomeBusiness&#xA;12)HomeBusiness2019&#xA;13)HomeStudent&#xA;14)HomeStudent2019&#xA;15)OneNote&#xA;16)Outlook&#xA;17)Outlook2019&#xA;18)Outlook2019Volume&#xA;19)Personal2019&#xA;20)PowerPoint&#xA;21)PowerPoint2019&#xA;22)PowerPoint2019Volume&#xA;23)Professional&#xA;24)Professional2019&#xA;25)ProjectProXVolume&#xA;26)ProjectPro2019&#xA;27)ProjectPro2019Volume&#xA;28)ProjectStd&#xA;29)ProjectStdXVolume&#xA;30)ProjectStd2019&#xA;31)ProjectStd2019Volume&#xA;32)ProPlus2019Volume&#xA;33)Publisher&#xA;34)Publisher2019&#xA;35)Publisher2019Volume&#xA;36)SkypeforBusinessEntry&#xA;37)SkypeforBusiness&#xA;38)SkypeforBusiness2019&#xA;39)SkypeforBusiness2019Volume&#xA;40)SkypeforBusinessEntry2019&#xA;41)Standard2019Volume&#xA;42)VisioProXVolume&#xA;43)VisioPro2019&#xA;44)VisioPro2019Volume&#xA;45)VisioStd&#xA;46)VisioStdXVolume&#xA;47)VisioStd2019&#xA;48)VisioStd2019Volume&#xA;49)Word&#xA;50)Word2019&#xA;51)Word2019Volume">
+      <Statement description="Script written by Quinn Van Order&#xD;&#xA;To change from prompt to a hardcoded specific product, alter lines 3, 4, and 5 to 'constant value' and input the required values in the first of the 2 fields. The second field is the variable names which should not be altered" name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="# of product to install. Defaults to 1" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="PRODUCTID" />
+      </Statement>
+      <Statement name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="1 for x64, 2 for x32. Defaults to x64" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="OSBIT" />
+      </Statement>
+      <Statement name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="Remove previous versions of Office, input '1' to enable" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="MSIREMOVAL" />
+      </Statement>
+      <Statement description="Trick to get super long strings to work in kaseya, following 2 variables hold array data for the 51 supported products" name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="'O365ProPlusRetail', 'O365BusinessRetail', 'O365SmallBusPremRetail', 'O365HomePremRetail',  'AccessRetail', 'Access2019Retail', 'Access2019Volume', 'ExcelRetail', 'Excel2019Retail', 'Excel2019Volume', 'HomeBusinessRetail', 'HomeBusiness2019Retail', 'HomeStudentRetail', 'HomeStudent2019Retail', 'OneNoteRetail', 'OutlookRetail', 'Outlook2019Retail', 'Outlook2019Volume', 'Personal2019Retail', 'PowerPointRetail', 'PowerPoint2019Retail', 'PowerPoint2019Volume', 'ProfessionalRetail', 'Professional2019Retail', 'ProjectProXVolume', 'ProjectPro2019Retail', 'ProjectPro2019Volume', 'ProjectStdRetail', " />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="PRODUCTS1" />
+      </Statement>
+      <Statement name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="'ProjectStdXVolume', 'ProjectStd2019Retail', 'ProjectStd2019Volume', 'ProPlus2019Volume', 'PublisherRetail', 'Publisher2019Retail', 'Publisher2019Volume', 'SkypeforBusinessEntryRetail', 'SkypeforBusinessRetail', 'SkypeforBusiness2019Retail', 'SkypeforBusiness2019Volume', 'SkypeforBusinessEntry2019Retail', 'Standard2019Volume', 'VisioProXVolume', 'VisioPro2019Retail', 'VisioPro2019Volume', 'VisioStdRetail', 'VisioStdXVolume', 'VisioStd2019Retail', 'VisioStd2019Volume', 'WordRetail', 'Word2019Retail', 'Word2019Volume'" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="PRODUCTS2" />
+      </Statement>
+      <Statement description="Temporary install directory" name="ExecuteShellCommand" continueOnFail="false">
+        <Parameter xsi:type="StringParameter" name="Command" value="if not exist &quot;C:\temp\O365&quot; mkdir &quot;C:\temp\O365&quot;" />
+        <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+        <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+      </Statement>
+      <If description="This line converts the product input back to the product name for use in the logging below">
+        <Condition name="CheckVariable">
+          <Parameter xsi:type="StringParameter" name="VariableName" value="#PRODUCTID#" />
+          <Parameter xsi:type="EnumParameter" name="Condition" value="GreaterThanOrEquals" />
+          <Parameter xsi:type="StringParameter" name="Value" value="1" />
+        </Condition>
+        <Then>
+          <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell -command &quot;$products= #PRODUCTS1# #PRODUCTS2#;if (#PRODUCTID# -ge 1 -and $num -le 25) {$index=#PRODUCTID#-1} else{$index=0}; $products[$index]&quot;" />
+            <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+            <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+          </Statement>
+        </Then>
+        <Else>
+          <Statement description="Handles lack of user product input by setting to default value of 1" name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Parameter1" value="echo O365ProPlusRetail" />
+            <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+            <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+          </Statement>
+        </Else>
+      </If>
+      <If description="">
+        <Condition name="CheckVariable">
+          <Parameter xsi:type="StringParameter" name="VariableName" value="#OSBIT#" />
+          <Parameter xsi:type="EnumParameter" name="Condition" value="Equals" />
+          <Parameter xsi:type="StringParameter" name="Value" value="2" />
+        </Condition>
+        <Then>
+          <Statement name="WriteScriptLogEntry" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Comment" value="Selected #global:cmdresults# x32" />
+          </Statement>
+        </Then>
+        <Else>
+          <Statement name="WriteScriptLogEntry" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Comment" value="Selected #global:cmdresults# x64" />
+          </Statement>
+        </Else>
+      </If>
+      <Statement name="WriteScriptLogEntry" continueOnFail="false">
+        <Parameter xsi:type="StringParameter" name="Comment" value="Deploying Office C2R toolkit. Troubleshooting tip: Is the WriteFile command on line 23 pointed at the source file correctly?" />
+      </Statement>
+      <Statement description="This file can be replaced with newer versions if required" name="WriteFile" continueOnFail="false">
+        <Parameter xsi:type="StringParameter" name="Path" value="C:\temp\officedeploymenttool_11306-33602.exe" />
+        <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\O365\officedeploymenttool_11306-33602.exe" />
+        <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+      </Statement>
+      <Statement name="WriteScriptLogEntry" continueOnFail="false">
+        <Parameter xsi:type="StringParameter" name="Comment" value="C2R Toolkit download successfully " />
+      </Statement>
+      <Statement description="The C2R toolkit can be extracted to access its components and use them via command line" name="Unzip file" continueOnFail="false">
+        <Parameter xsi:type="StringParameter" name="Parameter1" value="C:\temp\officedeploymenttool_11306-33602.exe" />
+        <Parameter xsi:type="StringParameter" name="Parameter2" value="C:\temp\O365" />
+        <Parameter xsi:type="StringParameter" name="Parameter3" value="True" />
+      </Statement>
+      <Statement name="WriteScriptLogEntry" continueOnFail="false">
+        <Parameter xsi:type="StringParameter" name="Comment" value="C2R Toolkit unpacked" />
+      </Statement>
+      <Statement description="Cleaning up the Junk files from unpacking the C2R toolkit, the config file is replaced by a specially formatted one" name="DeleteFile" continueOnFail="false">
+        <Parameter xsi:type="StringParameter" name="Path" value="C:\temp\O365\EULA" />
+      </Statement>
+      <Statement name="DeleteFile" continueOnFail="true">
+        <Parameter xsi:type="StringParameter" name="Path" value="C:\temp\O365\configuration-Office365-x64.xml" />
+      </Statement>
+      <Statement name="DeleteFile" continueOnFail="true">
+        <Parameter xsi:type="StringParameter" name="Path" value="C:\temp\O365\configuration-Office365-x86.xml" />
+      </Statement>
+      <Statement name="DeleteFile" continueOnFail="true">
+        <Parameter xsi:type="StringParameter" name="Path" value="C:\temp\O365\configuration-Office2019Enterprise.xml" />
+      </Statement>
+      <Statement name="DeleteFile" continueOnFail="true">
+        <Parameter xsi:type="StringParameter" name="Path" value="C:\temp\officedeploymenttool_11306-33602.exe" />
+      </Statement>
+      <Statement name="WriteScriptLogEntry" continueOnFail="false">
+        <Parameter xsi:type="StringParameter" name="Comment" value="Deploying Config file. Troubleshooting tip: Is the WriteFile command on line 36 pointed at the source file correctly?" />
+      </Statement>
+      <Statement description="Pro tip: You can alter the config file you have uploaded within Kaseya to change your language, or other options not specified by this script. Default is match OS language" name="WriteFile" continueOnFail="false">
+        <Parameter xsi:type="StringParameter" name="Path" value="C:\temp\O365\configuration.xml" />
+        <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\O365\configuration.xml" />
+        <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+      </Statement>
+      <If description="CONFIG - Begin file creation&#xD;&#xA;Set 64 or 32 bit">
+        <Condition name="CheckVariable">
+          <Parameter xsi:type="StringParameter" name="VariableName" value="#OSBIT#" />
+          <Parameter xsi:type="EnumParameter" name="Condition" value="Equals" />
+          <Parameter xsi:type="StringParameter" name="Value" value="2" />
+        </Condition>
+        <Then>
+          <Statement name="ExecuteShellCommand" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Command" value="powershell -command &quot;(Get-Content 'C:\temp\O365\configuration.xml') | Foreach-Object {$_ -replace 'OSBIT', '32' }| Set-Content 'C:\temp\O365\configuration.xml'&quot;" />
+            <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+            <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+          </Statement>
+        </Then>
+        <Else>
+          <Statement name="ExecuteShellCommand" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Command" value="powershell -command &quot;(Get-Content 'C:\temp\O365\configuration.xml') | Foreach-Object {$_ -replace 'OSBIT', '64' }| Set-Content 'C:\temp\O365\configuration.xml'&quot;" />
+            <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+            <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+          </Statement>
+        </Else>
+      </If>
+      <If description="Set specified product to install">
+        <Condition name="CheckVariable">
+          <Parameter xsi:type="StringParameter" name="VariableName" value="#PRODUCTID#" />
+          <Parameter xsi:type="EnumParameter" name="Condition" value="GreaterThanOrEquals" />
+          <Parameter xsi:type="StringParameter" name="Value" value="1" />
+        </Condition>
+        <Then>
+          <Statement name="WriteScriptLogEntry" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Comment" value="Product input detected, altering config file to match" />
+          </Statement>
+          <Statement name="ExecuteShellCommand" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Command" value="powershell -command &quot;$products= #PRODUCTS1# #PRODUCTS2#; if (#PRODUCTID# -ge 1 -and $num -le 25) {$index=#PRODUCTID#-1} else {$index=0}; (Get-Content 'C:\temp\O365\configuration.xml') | Foreach-Object {$_ -replace 'O365ProPlusRetail', $products[$index] }| Set-Content 'C:\temp\O365\configuration.xml'&quot;" />
+            <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+            <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+          </Statement>
+        </Then>
+        <Else>
+          <Statement name="WriteScriptLogEntry" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Comment" value="No product input detected, leaving config file on default value" />
+          </Statement>
+        </Else>
+      </If>
+      <If description="Sets remove old msi versions to true / false">
+        <Condition name="CheckVariable">
+          <Parameter xsi:type="StringParameter" name="VariableName" value="#MSIREMOVAL#" />
+          <Parameter xsi:type="EnumParameter" name="Condition" value="Equals" />
+          <Parameter xsi:type="StringParameter" name="Value" value="1" />
+        </Condition>
+        <Then>
+          <Statement name="ExecuteShellCommand" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Command" value="powershell -command &quot;(Get-Content 'C:\temp\O365\configuration.xml') | Foreach-Object {$_ -replace 'MSIREMOVAL', 'TRUE' }| Set-Content 'C:\temp\O365\configuration.xml'&quot;" />
+            <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+            <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+          </Statement>
+          <Statement name="WriteScriptLogEntry" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Comment" value="Any previous MSI versions of Office will be uninstalled" />
+          </Statement>
+        </Then>
+        <Else>
+          <Statement name="ExecuteShellCommand" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Command" value="powershell -command &quot;(Get-Content 'C:\temp\O365\configuration.xml') | Foreach-Object {$_ -replace 'MSIREMOVAL', 'FALSE' }| Set-Content 'C:\temp\O365\configuration.xml'&quot;" />
+            <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="User" />
+            <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+          </Statement>
+        </Else>
+      </If>
+      <If description="Set volume flag if needed">
+        <Condition name="CheckVariable">
+          <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
+          <Parameter xsi:type="EnumParameter" name="Condition" value="Contains" />
+          <Parameter xsi:type="StringParameter" name="Value" value="Volume" />
+        </Condition>
+        <Then>
+          <Statement description="Volume requires a different channel" name="WriteScriptLogEntry" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Comment" value="Volume licence detected, altering config file accordingly" />
+          </Statement>
+          <Statement name="ExecuteShellCommand" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Command" value="powershell -command &quot;(Get-Content 'C:\temp\O365\configuration.xml') | Foreach-Object {$_ -replace 'Monthly', 'PerpetualVL2019' }| Set-Content 'C:\temp\O365\configuration.xml'&quot;" />
+            <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+            <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+          </Statement>
+        </Then>
+      </If>
+      <Statement name="WriteScriptLogEntry" continueOnFail="false">
+        <Parameter xsi:type="StringParameter" name="Comment" value="Config file written to needed values" />
+      </Statement>
+      <Statement description="CONFIG - End file creation&#xD;&#xA;If Skype is open, the install will fail even with the flags to force close other office products, hence the explicit process termination" name="ExecuteShellCommand" continueOnFail="false">
+        <Parameter xsi:type="StringParameter" name="Command" value="taskkill /F /IM skype.exe /T &amp;&amp; taskkill /F /IM lync.exe /T" />
+        <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+        <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+      </Statement>
+      <Statement description="Freeing up space by clearing junk files" name="WriteScriptLogEntry" continueOnFail="false">
+        <Parameter xsi:type="StringParameter" name="Comment" value="Attempting to clear space prior to the free space check, clearing out various junk directories" />
+      </Statement>
+      <Statement description="Keeps the last 7 days of logs" name="ExecuteShellCommand" continueOnFail="true">
+        <Parameter xsi:type="StringParameter" name="Command" value="FORFILES /P “C:LogFiles” /S /D -7 /C “CMD /C DEL /F /Q @PATH”" />
+        <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+        <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+      </Statement>
+      <Statement name="ExecuteShellCommand" continueOnFail="true">
+        <Parameter xsi:type="StringParameter" name="Command" value="cd &quot;C:\Windows\Logs\CBS&quot; &amp;&amp; del *.* /F /Q" />
+        <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+        <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+      </Statement>
+      <Statement name="ExecuteShellCommand" continueOnFail="true">
+        <Parameter xsi:type="StringParameter" name="Command" value="cd &quot;C:\Windows\Temp&quot; &amp;&amp; del *.* /F /Q" />
+        <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+        <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+      </Statement>
+      <Statement name="ExecuteShellCommand" continueOnFail="true">
+        <Parameter xsi:type="StringParameter" name="Command" value="cd &quot;C:\$windows.~BT&quot; &amp;&amp; del *.* /F /Q" />
+        <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+        <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+      </Statement>
+      <Statement name="ExecuteShellCommand" continueOnFail="true">
+        <Parameter xsi:type="StringParameter" name="Command" value="rd /s %systemdrive%\$Recycle.bin /F /Q" />
+        <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+        <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+      </Statement>
+      <Statement description="Free space check prior to beginning download. Systems with less than 3gb of free space will not be able to install" name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+        <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell -command &quot;$a = ((get-psdrive c | Select-Object -ExpandProperty free) /1GB); [math]::Round($a)&quot;" />
+        <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+        <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+      </Statement>
+      <If description="">
+        <Condition name="EvaluateExpression">
+          <Parameter xsi:type="StringParameter" name="ExpressionText" value="#global:cmdresults#" />
+          <Parameter xsi:type="EnumParameter" name="Condition" value="LessThan" />
+          <Parameter xsi:type="StringParameter" name="Value" value="3" />
+        </Condition>
+        <Then>
+          <Statement name="WriteScriptLogEntry" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Comment" value="#global:cmdresults#gb of free space is insufficient. Install not attempted" />
+          </Statement>
+        </Then>
+        <Else>
+          <Statement name="WriteScriptLogEntry" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Comment" value="#global:cmdresults#gb of free space is sufficient. Beginning download." />
+          </Statement>
+          <Statement name="ExecuteShellCommand" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Command" value="cd &quot;C:\temp\O365&quot; &amp;&amp; setup.exe /download configuration.xml" />
+            <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+            <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+          </Statement>
+          <Statement name="WriteScriptLogEntry" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Comment" value="Beginning Install" />
+          </Statement>
+          <Statement name="ExecuteShellCommand" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Command" value="cd &quot;C:\temp\O365&quot; &amp;&amp; setup.exe /configure configuration.xml" />
+            <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+            <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+          </Statement>
+          <Statement name="WriteScriptLogEntry" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Comment" value="Install Complete" />
+          </Statement>
+        </Else>
+      </If>
+      <Statement name="ExecuteShellCommand" continueOnFail="false">
+        <Parameter xsi:type="StringParameter" name="Command" value="powershell.exe -nologo -executionpolicy bypass -noprofile -command &quot; If(test-path 'C:\temp\O365'){Remove-Item 'C:\temp\O365' -Recurse -Force}&quot; " />
+        <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+        <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+      </Statement>
+      <Statement name="WriteScriptLogEntry" continueOnFail="false">
+        <Parameter xsi:type="StringParameter" name="Comment" value="Install files removed, Procedure is complete." />
+      </Statement>
+    </Body>
+  </Procedure>
+</ScriptExport>
