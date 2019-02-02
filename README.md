@@ -2,12 +2,19 @@
 Installs any Office365 product silently
 
 •	Windows only 
+
 •	Silently installs Office, can be run against user workstations as they are logged in and using the device. 
+
 •	Only end user visible if they have prior Office versions running, as the installation will terminate them. 
+
 •	Can be used on top of Office 2013 products, will upgrade them in place assuming they were of the Office 365 variants. 
+
 •	Can be set to x86 or x64, and to any supported language. 
+
 •	Can remove previous Office installs with an optional flag 
+
 •	No need to have user credentials, once the software installs, it will prompt the user for credentials on first run to activate. 
+
 •	Requires Office 365 licensing. 
 
 
