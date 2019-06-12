@@ -1,5 +1,7 @@
 # Office365Installer
 Installs any Office365 product silently
+Code is also posted on the Kaseya Automation Exchange: https://automationexchange.kaseya.com/products/438
+
 
 •	Windows only 
 
